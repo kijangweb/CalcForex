@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"/>
-<title>Pro Multi Pair RR Calculator - v2.5</title>
+<title>Pro Multi Pair RR Calculator - v2.8</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <style>
 :root {
@@ -29,15 +29,51 @@ h1 { font-size: 26px; font-weight: 800; text-transform: uppercase; margin: 0; le
 .subtitle { font-size: 11px; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.box { display: flex; flex-direction: column; }
-label { font-size: 13px; margin-bottom: 6px; font-weight: 500; opacity: 0.9; }
+.box { display: flex; flex-direction: column; position: relative; }
+label { font-size: 13px; margin-bottom: 6px; font-weight: 600; opacity: 1; }
 
+/* STANDAR FORM FIELD */
 .form-field {
   width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #aaa;
-  font-size: 16px; transition: all 0.3s;
+  font-size: 16px; transition: all 0.3s; position: relative; z-index: 2;
 }
-.form-field:focus { outline: none; border-color: var(--gold-mid); }
-.form-field[readonly] { font-weight: 700; cursor: default; opacity: 0.8; }
+
+/* --- ANIMATED SPECTRUM BORDER UNTUK OPEN PRICE --- */
+.highlight-op {
+  position: relative;
+  padding: 3px; /* Jarak untuk border spectrum */
+  background: linear-gradient(0deg, transparent, transparent);
+  border-radius: 15px;
+  overflow: hidden;
+  display: flex; justify-content: center; align-items: center;
+}
+
+.highlight-op::before {
+  content: '';
+  position: absolute;
+  width: 150%; height: 150%;
+  background-image: conic-gradient(transparent, transparent, transparent, var(--gold-mid));
+  animation: rotate 3s linear infinite;
+  z-index: 0;
+}
+
+/* Penyesuaian warna spectrum berdasarkan tema (diatur di JS atau CSS spesifik) */
+body.neon .highlight-op::before { background-image: conic-gradient(transparent, transparent, transparent, var(--neon-blue)); }
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.highlight-op .form-field {
+  border: none !important;
+  background: #000; /* Menutup bagian tengah agar border terlihat tipis */
+}
+
+/* READONLY STYLE (High Contrast) */
+.form-field[readonly] {
+  cursor: default; font-weight: 800; opacity: 1 !important;
+}
 
 button {
   width: 100%; padding: 14px; border: none; border-radius: 12px; cursor: pointer;
@@ -51,40 +87,38 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 350p
 th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid rgba(128,128,128,0.2); }
 
 .badge { padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 12px; }
-.badge.success { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-.badge.danger { color: #f87171; background: rgba(248, 113, 113, 0.1); }
-.badge.info { color: #60a5fa; background: rgba(96, 165, 250, 0.1); }
-
 .theme-select { padding: 10px; border-radius: 10px; margin-bottom: 20px; width: 100%; cursor: pointer; font-weight: 600; }
 .copyright { margin-top: 25px; text-align: center; font-size: 10px; opacity: 0.5; }
 
 /* --- THEMES CONFIG --- */
-/* Gold */
 body.gold { background: #0f0d05; color: #fdf3c0; }
 body.gold .card { background: linear-gradient(145deg, #161308, #000); border: 1px solid #42350a; }
 body.gold h1 { background: linear-gradient(to right, #ffe17b, #c7a420, #ffe17b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 body.gold .form-field { background: #131109; color: #ffeeba; border-color: #42350a; }
+body.gold .highlight-op .form-field { background: #0a0904; }
+body.gold .form-field[readonly] { background: #2a2510; color: #fff; border-color: var(--gold-mid); }
 body.gold button { background: linear-gradient(135deg, #c7a420, #967d1c); color: #000; }
 
-/* Neon */
 body.neon { background: #050b14; color: #b8e8ff; }
 body.neon .card { background: linear-gradient(145deg, #091624, #02050a); border: 1px solid #004e66; }
 body.neon h1 { color: #00f6ff; text-shadow: 0 0 15px rgba(0,246,255,0.4); }
 body.neon .form-field { background: #06111a; color: #00f6ff; border-color: #004e66; }
+body.neon .highlight-op .form-field { background: #02050a; }
+body.neon .form-field[readonly] { background: #002233; color: #fff; border-color: #00f6ff; }
 body.neon button { background: linear-gradient(135deg, #00f6ff, #0056b3); color: #fff; }
 
-/* Dark/Midnight */
 body.dark { background: #121212; color: #eee; }
 body.dark .card { background: #1e1e1e; border: 1px solid #333; }
-body.dark h1 { color: #fff; }
 body.dark .form-field { background: #2d2d2d; border-color: #444; color: #fff; }
+body.dark .highlight-op::before { background-image: conic-gradient(transparent, transparent, transparent, #fff); }
+body.dark .form-field[readonly] { background: #000; color: #4ade80; border-color: #444; }
 body.dark button { background: #333; border: 1px solid #555; color: #fff; }
 
-/* BW/Paper */
 body.bw { background: #f4f4f5; color: #18181b; }
-body.bw .card { background: #fff; border: 1px solid #e4e4e7; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-body.bw h1 { color: #000; }
+body.bw .card { background: #fff; border: 1px solid #e4e4e7; }
 body.bw .form-field { background: #fff; border-color: #d4d4d8; color: #000; }
+body.bw .highlight-op::before { background-image: conic-gradient(transparent, transparent, transparent, #000); }
+body.bw .form-field[readonly] { background: #18181b; color: #fff; border-color: #000; }
 body.bw button { background: #18181b; color: #fff; }
 
 @media (max-width: 600px) {
@@ -105,7 +139,7 @@ body.bw button { background: #18181b; color: #fff; }
 
   <div class="header-group">
     <h1>RR Calculator</h1>
-    <div class="subtitle">Version 2.5 • Full Themes & Groups</div>
+    <div class="subtitle">Version 2.8 • Spectrum Border Highlight</div>
   </div>
 
   <div class="grid-2">
@@ -153,10 +187,12 @@ body.bw button { background: #18181b; color: #fff; }
   <div class="grid-2">
     <div class="box">
       <label>Open Price (OP)</label>
-      <input id="op" class="form-field" type="text" inputmode="decimal" value="4000.00" />
+      <div class="highlight-op">
+        <input id="op" class="form-field" type="text" inputmode="decimal" value="4000.00" />
+      </div>
     </div>
     <div class="box">
-      <label>Take Profit (TP)</label>
+      <label>Take Profit (TP) - Output</label>
       <input id="tp" class="form-field" type="text" readonly />
     </div>
   </div>
@@ -167,7 +203,7 @@ body.bw button { background: #18181b; color: #fff; }
       <input id="tpPips" class="form-field" type="text" inputmode="numeric" value="150" />
     </div>
     <div class="box">
-      <label>Stop Loss (SL)</label>
+      <label>Stop Loss (SL) - Output</label>
       <input id="slInfo" class="form-field" type="text" readonly />
     </div>
   </div>
@@ -225,7 +261,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const PAIR_DEFAULTS = {
     XAUUSD: 4000.00, AUDUSD: 0.65000, EURGBP: 0.85000, NZDUSD: 0.61000, USDCHF: 0.88000,
     AUDJPY: 102.00, CADJPY: 112.00, EURUSD: 1.08000, GBPUSD: 1.26000, NZDJPY: 95.00,
-    USDCAD: 1.36000, CHFJPY: 172.00, EURJPY: 165.00, EURNZD: 1.82000, GBPJPY: 195.00, USDJPY: 155.00
+    USDCAD: 1.36000, CHFJPY: 172.00, EURJPY: 165.00, EURNZD: 1.82000, GBPJPY: 195.00, USDJPY: 155.50
   };
 
   const getPipVal = p => (p === 'XAUUSD' ? 0.1 : (p.includes('JPY') ? 0.01 : 0.0001));
@@ -257,16 +293,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     els.tbody.innerHTML = `<tr>
       <td><b>${pr}</b></td>
-      <td><span class="badge ${pos==='buy'?'success':'danger'}">${pos.toUpperCase()}</span></td>
+      <td><span style="padding:4px 8px; border-radius:6px; font-weight:700; font-size:12px;" class="badge ${pos==='buy'?'success':'danger'}">${pos.toUpperCase()}</span></td>
       <td>${fmt(OP, d)}</td>
-      <td style="color:var(--neon-blue)">${fmt(TP, d)}</td>
-      <td><span class="badge info">+${pipsInput}</span></td>
+      <td style="color:var(--neon-blue); font-weight:700;">${fmt(TP, d)}</td>
+      <td><span style="padding:4px 8px; border-radius:6px; font-weight:700; font-size:12px; color:#60a5fa; background:rgba(96,165,250,0.1);" class="badge info">+${pipsInput}</span></td>
       <td>1:${rrVal}</td>
     </tr>`;
     els.table.style.display = 'table';
   }
 
-  // Input listeners
   [els.op, els.tpPips].forEach(input => {
     input.addEventListener('input', update);
   });
@@ -279,7 +314,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   [els.rr, els.pos].forEach(el => el.addEventListener('change', update));
   
-  // Init
   update();
 
   els.copy.addEventListener('click', () => {
